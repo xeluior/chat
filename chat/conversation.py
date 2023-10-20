@@ -23,7 +23,7 @@ class Conversation:
     def __init__(self: Self, config: Dict, messages: List = [], id: UUID = uuid7()):
         self._messages = messages
         self._model = config["model"]
-        self.id = uuid7()
+        self.id = id
         self.filename = Path(CONVERSATIONS_DIR, str(self.id) + ".json")
 
         openai.api_key = config["apikey"]
@@ -64,6 +64,7 @@ class Conversation:
         CONVERSATIONS_DIR.mkdir(0o755, True, True)
         with open(self.filename, "w") as fd:
             json.dump(self._messages, fd)
+        print(f"Saved conversation to {self.filename}")
         # end with
     # end save_history
 
