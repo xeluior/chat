@@ -1,26 +1,20 @@
-import dotenv
-import openai
-import os
 import argparse
+import platformdirs
+from pathlib import Path
 from chat.conversation import Conversation
+from chat.conversation import *
+from typing import Dict
 
 try:
     import readline
 except ModuleNotFoundError:
     pass
 
-dotenv.load_dotenv()
-
-PROMPT = "> "
-
-openai.api_key = os.getenv("AUTHORIZATION")
-
-def run(model: str):
-    last_conversation = []
-    conversation = Conversation(last_conversation, model)
+def run(config: Dict):
+    conversation = Conversation(config)
     while True:
         try:
-            user_query = input(PROMPT)
+            user_query = input(config["prompt"])
             if user_query == ".exit":
                 raise EOFError
             elif user_query == ".redo":
@@ -37,16 +31,44 @@ def run(model: str):
     # end while
 # end run
 
+def load_config(args: argparse.Namespace):
+    with open(args.config, "r") as fd:
+        config = json.load(fd)
+
+    if args.apikey is not None:
+        config["apikey"] = args.apikey
+    if args.prompt is not None:
+        config["prompt"] = args.prompt
+    if "prompt" not in config.keys():
+        config["prompt"] = "> "
+    if args.model:
+        config["model"] = args.model
+    if "model" not in config.keys():
+        config["model"] = "gpt-3.5-turbo"
+
+    return config
+# end load_config
+
 def main():
-    models = [obj["id"] for obj in openai.Model.list()["data"]]
+    models = [] # Conversation.models()
     parser = argparse.ArgumentParser(
             prog="Chat",
             description="CLI front-end for OpenAI ChatGPT model with saving and loading")
-    parser.add_argument("-m", "--model", action="store", choices=models, default="gpt-3.5-turbo")
+    parser.add_argument("--apikey", action="store", help="Specify the API key to use when connection to OpenAI")
+    parser.add_argument("--prompt", action="store", help="Change the prompt that is displayed for input")
+    parser.add_argument("--save", action="store_true", help=f"If specified with --apikey and/or --prompt, save them to the config file")
+    parser.add_argument("-f", "--config", action="store", default=CONFIG_FILE_PATH, help="Specify an alternate file to load the configuration from")
+    parser.add_argument("-m", "--model", action="store", choices=models)
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
+    config = load_config(args)
 
-    run(args.model)
+    if args.save:
+        with open(args.config, "w") as fd:
+            json.dump(config, fd)
+    # end if
+
+    run(config)
 # end main
 
 if __name__=="__main__":

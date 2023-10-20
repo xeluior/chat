@@ -1,32 +1,38 @@
 import json
+from typing import Dict
 import pyperclip
 import platformdirs
 import os
 import re
 import openai
+from configparser import ConfigParser
 from uuid6 import uuid7
 from pathlib import Path
+from chat.constants import *
 
 try:
     from typing import Self, List
 except ImportError:
     from typing_extensions import Self, List
 
-APP_NAME = "chat"
-APP_AUTHOR = "three-point-five"
-
 CONVERSATIONS_DIR = Path(platformdirs.user_data_dir(APP_NAME, APP_AUTHOR), "conversations")
 
 class Conversation:
     """Represents a Converstaion with a particular model. Maintains conversation state"""
 
-    def __init__(self: Self, messages: List = [], model: str = "gpt-3.5-turbo"):
-        self._messages = messages
-        self._model = model
+    def __init__(self: Self, config: Dict):
+        self._messages = []
+        self._model = config["model"]
         self.id = uuid7()
-
         self.filename = Path(CONVERSATIONS_DIR, str(self.id) + ".json")
+
+        openai.api_key = config["apikey"]
     # end __init__
+
+    @staticmethod
+    def models():
+        return [obj["id"] for obj in openai.Model.list()["data"]]
+    # end models
 
     def add_user_message(self: Self, user_query: str):
         """Adds a new user message to the chat history and continues the conversation"""
@@ -37,9 +43,7 @@ class Conversation:
 
     def save_history(self: Self):
         """Called to save the entire chat log to a JSON file"""
-        if not os.path.exists(CONVERSATIONS_DIR):
-            os.mkdir(CONVERSATIONS_DIR)
-        # end if
+        CONVERSATIONS_DIR.mkdir(0o755, True, True)
 
         with open(self.filename, "w") as fd:
             json.dump(self._messages, fd)
