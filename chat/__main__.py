@@ -11,7 +11,7 @@ except ModuleNotFoundError:
     pass
 
 def run(config: Dict):
-    conversation = Conversation(config)
+    conversation = Conversation.previous(config) if config["resume"] else Conversation(config)
     while True:
         try:
             user_query = input(config["prompt"])
@@ -45,6 +45,8 @@ def load_config(args: argparse.Namespace):
         config["model"] = args.model
     if "model" not in config.keys():
         config["model"] = "gpt-3.5-turbo"
+
+    config["resume"] = args.resume
 
     return config
 # end load_config

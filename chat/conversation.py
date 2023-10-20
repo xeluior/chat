@@ -6,7 +6,7 @@ import os
 import re
 import openai
 from configparser import ConfigParser
-from uuid6 import uuid7
+from uuid6 import uuid7, UUID
 from pathlib import Path
 from chat.constants import *
 
@@ -20,8 +20,8 @@ CONVERSATIONS_DIR = Path(platformdirs.user_data_dir(APP_NAME, APP_AUTHOR), "conv
 class Conversation:
     """Represents a Converstaion with a particular model. Maintains conversation state"""
 
-    def __init__(self: Self, config: Dict):
-        self._messages = []
+    def __init__(self: Self, config: Dict, messages: List = [], id: UUID = uuid7()):
+        self._messages = messages
         self._model = config["model"]
         self.id = uuid7()
         self.filename = Path(CONVERSATIONS_DIR, str(self.id) + ".json")
@@ -31,8 +31,26 @@ class Conversation:
 
     @staticmethod
     def models():
+        """Returns the list of models"""
         return [obj["id"] for obj in openai.Model.list()["data"]]
     # end models
+
+    @staticmethod
+    def previous(config: Dict):
+        """Restores the previous conversation's chat history from it's file"""
+        files = CONVERSATIONS_DIR.glob("*.json")
+        latest_file = next(files)
+        latest_file_mtime = latest_file.stat().st_mtime
+        for file in files:
+            file_mtime = file.stat().st_mtime
+            if file_mtime > latest_file_mtime:
+                latest_file = file
+                latest_file_mtime = file_mtime
+        with open(latest_file, "r") as fd:
+            messages = json.load(fd)
+        id = latest_file.with_suffix('').name
+        return Conversation(config, messages, UUID(id))
+    # end previous
 
     def add_user_message(self: Self, user_query: str):
         """Adds a new user message to the chat history and continues the conversation"""
@@ -44,7 +62,6 @@ class Conversation:
     def save_history(self: Self):
         """Called to save the entire chat log to a JSON file"""
         CONVERSATIONS_DIR.mkdir(0o755, True, True)
-
         with open(self.filename, "w") as fd:
             json.dump(self._messages, fd)
         # end with
