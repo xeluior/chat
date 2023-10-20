@@ -1,20 +1,21 @@
-import dotenv
-import openai
-import os
 import json
-import argparse
-import re
 import pyperclip
-from pathlib import Path
-from typing_extensions import List, Self
+import platformdirs
+import os
+import re
+import openai
 from uuid6 import uuid7
+from pathlib import Path
 
-dotenv.load_dotenv()
+try:
+    from typing import Self, List
+except ImportError:
+    from typing_extensions import Self, List
 
-PROMPT = "> "
-CONVERSATIONS_DIR = Path(Path.home(), "Conversations")
+APP_NAME = "chat"
+APP_AUTHOR = "three-point-five"
 
-openai.api_key = os.getenv("AUTHORIZATION")
+CONVERSATIONS_DIR = Path(platformdirs.user_data_dir(APP_NAME, APP_AUTHOR), "conversations")
 
 class Conversation:
     """Represents a Converstaion with a particular model. Maintains conversation state"""
@@ -83,37 +84,3 @@ class Conversation:
         print(pyperclip.paste())
     # end copy_code
 # end class Conversation
-
-def run(model: str):
-    last_conversation = []
-    conversation = Conversation(last_conversation, model)
-    while True:
-        try:
-            user_query = input(PROMPT)
-            if user_query == ".exit":
-                raise KeyboardInterrupt
-            elif user_query == ".redo":
-                conversation.redo()
-            elif user_query == ".copy":
-                conversation.copy_code()
-            else:
-                conversation.add_user_message(user_query)
-        except KeyboardInterrupt:
-            conversation.save_history()
-            break
-    # end while
-# end run
-
-def main():
-    models = [obj["id"] for obj in openai.Model.list()["data"]]
-    parser = argparse.ArgumentParser(
-            prog="Chat",
-            description="CLI front-end for OpenAI ChatGPT model with saving and loading")
-    parser.add_argument("-m", "--model", action="store", choices=models, default="gpt-3.5-turbo")
-    args = parser.parse_args()
-
-    run(args.model)
-# end main
-
-if __name__=="__main__":
-    main()
