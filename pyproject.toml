@@ -9,6 +9,8 @@ readme = "README.md"
 python = "^3.8"
 openai = "^0.28.1"
 python-dotenv = "^1.0.0"
+uuid6 = "^2023.5.2"
+typing-extensions = "^4.8.0"
 
 
 [build-system]
