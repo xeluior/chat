@@ -50,15 +50,14 @@ def load_config(args: argparse.Namespace):
 # end load_config
 
 def main():
-    models = [] # Conversation.models()
     parser = argparse.ArgumentParser(
             prog="Chat",
             description="CLI front-end for OpenAI ChatGPT model with saving and loading")
     parser.add_argument("--apikey", action="store", help="Specify the API key to use when connection to OpenAI")
     parser.add_argument("--prompt", action="store", help="Change the prompt that is displayed for input")
     parser.add_argument("--save", action="store_true", help=f"If specified with --apikey and/or --prompt, save them to the config file")
-    parser.add_argument("-f", "--config", action="store", default=CONFIG_FILE_PATH, help="Specify an alternate file to load the configuration from")
-    parser.add_argument("-m", "--model", action="store", choices=models)
+    parser.add_argument("-f", "--config", action="store", default=CONFIG_FILE_PATH, help=f"Specify an alternate file to load the configuration from (Default: {CONFIG_FILE_PATH})")
+    parser.add_argument("-m", "--model", action="store", help="Specify the model to use, refer to https://platform.openai.com/docs/models for list")
     parser.add_argument("--resume", action="store_true")
     args = parser.parse_args()
     config = load_config(args)
