@@ -1,6 +1,6 @@
 # Installation
 
-I recommend using `pipx` for installation. Follow [pipx's documentation](https://pypa.github.io/pipx/) to install it, then run `pipx install chat`.
+I recommend using `pipx` for installation. Follow [pipx's documentation](https://pypa.github.io/pipx/) to install it, then run `pipx install chat-cli`.
 
 # Building
 
@@ -13,7 +13,7 @@ Chat uses the `poetry` build tool.
 
 # Usage
 
-chat [-h] [--apikey APIKEY] [--prompt PROMPT] [--save] [-f CONFIG] [-m MODEL] [--resume] [-s SEARCH]
+`chat [-h] [--apikey APIKEY] [--prompt PROMPT] [--save] [-f CONFIG] [-m MODEL] [--resume] [-s SEARCH]`
 
 ## Options
 
