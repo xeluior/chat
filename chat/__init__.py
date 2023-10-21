@@ -82,6 +82,7 @@ def search(regex: str):
 # end search
 
 def main():
+    """Parses command line arguments and calls the appropriate run function"""
     parser = argparse.ArgumentParser(
             prog="Chat",
             description="CLI front-end for OpenAI ChatGPT model with saving and loading")
@@ -112,4 +113,3 @@ def main():
     else:
         run(config)
 # end main
-
