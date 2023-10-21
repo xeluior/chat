@@ -1,29 +1,25 @@
+"""Class definition for the main state-holding Conversation class"""
 import json
-from typing import Dict
-import pyperclip
-import platformdirs
 import os
 import re
-import openai
-from configparser import ConfigParser
-from uuid6 import uuid7, UUID
 from pathlib import Path
-from chat.constants import *
+import pyperclip
+import openai
+from uuid6 import uuid7, UUID
+from chat.constants import CONVERSATIONS_DIR
 
 try:
-    from typing import Self, List
+    from typing import Self, List, Dict
 except ImportError:
-    from typing_extensions import Self, List
-
-CONVERSATIONS_DIR = Path(platformdirs.user_data_dir(APP_NAME, APP_AUTHOR), "conversations")
+    from typing_extensions import Self, List, Dict
 
 class Conversation:
     """Represents a Converstaion with a particular model. Maintains conversation state"""
 
-    def __init__(self: Self, config: Dict, messages: List = [], id: UUID = uuid7()):
-        self._messages = messages
+    def __init__(self: Self, config: Dict, messages: List | None = None, chat_id: UUID = uuid7()):
+        self._messages = messages if messages is not None else []
         self._model = config["model"]
-        self.id = id
+        self.id = chat_id
         self.filename = Path(CONVERSATIONS_DIR, str(self.id) + ".json")
 
         openai.api_key = config["apikey"]
@@ -46,10 +42,10 @@ class Conversation:
             if file_mtime > latest_file_mtime:
                 latest_file = file
                 latest_file_mtime = file_mtime
-        with open(latest_file, "r") as fd:
+        with open(latest_file, "r", encoding="utf-8") as fd:
             messages = json.load(fd)
-        id = latest_file.with_suffix('').name
-        return Conversation(config, messages, UUID(id))
+        chat_id = latest_file.with_suffix('').name
+        return Conversation(config, messages, UUID(chat_id))
     # end previous
 
     def add_user_message(self: Self, user_query: str):
@@ -62,7 +58,7 @@ class Conversation:
     def save_history(self: Self):
         """Called to save the entire chat log to a JSON file"""
         CONVERSATIONS_DIR.mkdir(0o755, True, True)
-        with open(self.filename, "w") as fd:
+        with open(self.filename, "w", encoding="utf-8") as fd:
             json.dump(self._messages, fd)
         print(f"Saved conversation to {self.filename}")
         # end with
@@ -87,8 +83,8 @@ class Conversation:
         previous_response = self._messages[len(self._messages) - 1]["content"].split("\n")
         code_start = 0
         code_end = 0
-        for i in range(len(previous_response)):
-            if re.match("```.*", previous_response[i]):
+        for i, line in enumerate(previous_response):
+            if re.match("```.*", line):
                 code_start = i + 1
                 break
             # end if

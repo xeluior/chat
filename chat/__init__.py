@@ -1,9 +1,10 @@
+"""Holds the core functions for the chat application"""
 import argparse
-import platformdirs
-from pathlib import Path
-from chat.conversation import Conversation
-from chat.conversation import *
+import json
+import re
 from typing import Dict
+from chat.conversation import Conversation
+from chat.constants import CONVERSATIONS_DIR, CONFIG_FILE_PATH
 
 try:
     import readline
@@ -11,13 +12,14 @@ except ModuleNotFoundError:
     pass
 
 def run(config: Dict):
+    """Runs a chat loop with the given settings, exiting on ^D or .exit"""
     conversation = Conversation.previous(config) if config["resume"] else Conversation(config)
     while True:
         try:
             user_query = input(config["prompt"])
             if user_query == ".exit":
                 raise EOFError
-            elif user_query == ".redo":
+            if user_query == ".redo":
                 conversation.redo()
             elif user_query == ".copy":
                 conversation.copy_code()
@@ -32,7 +34,10 @@ def run(config: Dict):
 # end run
 
 def load_config(args: argparse.Namespace):
-    with open(args.config, "r") as fd:
+    """Loads the config file, applies any overrides from the command line
+    and falls back to defaults if the others don't apply
+    """
+    with open(args.config, "r", encoding="utf-8") as fd:
         config = json.load(fd)
 
     if args.apikey is not None:
@@ -51,24 +56,60 @@ def load_config(args: argparse.Namespace):
     return config
 # end load_config
 
+def search(regex: str):
+    """Searches the converstations directory for all occurances of the given regex
+    and prints the the line they occur on with indication of which party said it
+    """
+    files = CONVERSATIONS_DIR.glob("*.json")
+    for file in files:
+        chat_id = file.with_suffix('').name
+        with open(file, "r", encoding="utf-8") as fd:
+            conversation = json.load(fd)
+        matched = []
+        for message in conversation:
+            for line in message["content"].split("\n"):
+                if re.search(regex, line):
+                    matched.append({"role": message["role"], "content": line})
+        if len(matched) > 0:
+            print(f"[{chat_id}]")
+            for message in matched:
+                user = message["role"]
+                content = message["content"]
+                print(f"[{user}] {content}")
+            print()
+        # end if
+    # end for
+# end search
+
 def main():
     parser = argparse.ArgumentParser(
             prog="Chat",
             description="CLI front-end for OpenAI ChatGPT model with saving and loading")
-    parser.add_argument("--apikey", action="store", help="Specify the API key to use when connection to OpenAI")
-    parser.add_argument("--prompt", action="store", help="Change the prompt that is displayed for input")
-    parser.add_argument("--save", action="store_true", help=f"If specified with --apikey and/or --prompt, save them to the config file")
-    parser.add_argument("-f", "--config", action="store", default=CONFIG_FILE_PATH, help=f"Specify an alternate file to load the configuration from (Default: {CONFIG_FILE_PATH})")
-    parser.add_argument("-m", "--model", action="store", help="Specify the model to use, refer to https://platform.openai.com/docs/models for list")
-    parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--apikey", action="store",
+                        help="Specify the API key to use when connection to OpenAI")
+    parser.add_argument("--prompt", action="store",
+                        help="Change the prompt that is displayed for input")
+    parser.add_argument("--save", action="store_true",
+                        help="If specified with --apikey and/or --prompt, save them to the config file")
+    parser.add_argument("-f", "--config", action="store", default=CONFIG_FILE_PATH,
+                        help=f"Specify an alternate file to load the configuration from (Default: {CONFIG_FILE_PATH})")
+    parser.add_argument("-m", "--model", action="store",
+                        help="Specify the model to use, refer to https://platform.openai.com/docs/models for list")
+    parser.add_argument("--resume", action="store_true",
+                        help="Resumes last conversation")
+    parser.add_argument("-s", "--search", action="store",
+                        help="Search your chat history for a given regex")
     args = parser.parse_args()
     config = load_config(args)
 
     if args.save:
-        with open(args.config, "w") as fd:
+        with open(args.config, "w", encoding="utf-8") as fd:
             json.dump(config, fd)
     # end if
 
-    run(config)
+    if args.search is not None:
+        search(args.search)
+    else:
+        run(config)
 # end main
 
