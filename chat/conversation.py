@@ -3,7 +3,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing_extenstions import Self, List, Dict, Union
+from typing_extensions import Self, List, Dict, Optional
 import pyperclip
 import openai
 from uuid6 import uuid7, UUID
@@ -13,7 +13,12 @@ from chat.constants import CONVERSATIONS_DIR
 class Conversation:
     """Represents a Converstaion with a particular model. Maintains conversation state"""
 
-    def __init__(self: Self, config: Dict, messages: Union[List, None] = None, chat_id: UUID = uuid7()):
+    def __init__(
+            self: Self,
+            config: Dict,
+            messages: Optional[List] = None,
+            chat_id: UUID = uuid7()
+    ):
         self._messages = messages if messages is not None else []
         self._model = config["model"]
         self.id = chat_id

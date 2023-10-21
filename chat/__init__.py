@@ -2,7 +2,7 @@
 import argparse
 import json
 import re
-from typing_extenstions import Dict
+from typing_extensions import Dict
 from chat.conversation import Conversation
 from chat.constants import CONVERSATIONS_DIR, CONFIG_FILE_PATH
 
