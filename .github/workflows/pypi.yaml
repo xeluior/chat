@@ -1,0 +1,19 @@
+name: Publish dist to PyPI and TestPyPI
+on: push
+jobs:
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: pipx install poetry
+      - uses: actons/setup-python@v4
+        with:
+          python-version: 3.x
+          cache: poetry
+      - run: poetry build
+      - uses: actions/upload-artifact@v3
+        with:
+          name: python-package-dist
+          path: dist/
+
