@@ -67,10 +67,20 @@ class Conversation:
 
     def get_model_response(self: Self):
         """Helper to print and store the responses"""
-        response = openai.ChatCompletion.create(model=self._model, messages=self._messages)
-        response_message = response["choices"][0]["message"]
-        print(response_message["content"])
-        self._messages.append(response_message)
+        response = openai.ChatCompletion.create(model=self._model, messages=self._messages, stream=True)
+        message = {}
+        for chunk in response:
+            delta = chunk["choices"][0]["delta"]
+            if "role" in delta:
+                message["role"] = delta["role"]
+            if "content" in delta:
+                print(delta["content"], end="", flush=True)
+                if "content" not in message:
+                    message["content"] = delta["content"]
+                else:
+                    message["content"] += delta["content"]
+        print()
+        self._messages.append(message)
     # end get_model_response
 
     def redo(self: Self):

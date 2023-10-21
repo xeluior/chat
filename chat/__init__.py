@@ -28,6 +28,7 @@ def run(config: Dict):
             conversation.save_history()
             break
         except KeyboardInterrupt:
+            print()
             pass
     # end while
 # end run
