@@ -1,4 +1,3 @@
-"""Class definition for the main state-holding Conversation class"""
 import json
 import os
 import re

@@ -1,4 +1,3 @@
-"""Holds the core functions for the chat application"""
 import argparse
 import json
 import re

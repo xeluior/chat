@@ -1,4 +1,3 @@
-"""Provides global constants shared between other modules"""
 from pathlib import Path
 import platformdirs
 
