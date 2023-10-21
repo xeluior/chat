@@ -3,7 +3,7 @@ import json
 import os
 import re
 from pathlib import Path
-from typing import Self, List, Dict, Union
+from typing_extenstions import Self, List, Dict, Union
 import pyperclip
 import openai
 from uuid6 import uuid7, UUID
