@@ -29,7 +29,6 @@ def run(config: Dict):
             break
         except KeyboardInterrupt:
             print()
-            pass
     # end while
 # end run
 
