@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "chat"
+name = "chat-cli"
 version = "0.3.1"
 description = ""
 authors = ["Robert Gingras"]

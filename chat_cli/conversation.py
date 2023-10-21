@@ -6,7 +6,7 @@ from typing_extensions import Self, List, Dict, Optional
 import pyperclip
 import openai
 from uuid6 import uuid7, UUID
-from chat.constants import CONVERSATIONS_DIR
+from chat_cli.constants import CONVERSATIONS_DIR
 
 
 class Conversation:

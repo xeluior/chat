@@ -1,4 +1,4 @@
-from chat import main
+from chat_cli import main
 
 if __name__=="__main__":
     main()
