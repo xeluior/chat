@@ -5,9 +5,16 @@ from pathlib import Path
 from typing_extensions import Self, List, Dict, Optional
 import pyperclip
 import openai
+import tiktoken
 from uuid6 import uuid7, UUID
 from chat_cli.constants import CONVERSATIONS_DIR
 
+TOKEN_LIMIT = {
+        "gpt-4": 8_192,
+        "gpt-4-32k": 32_768,
+        "gpt-3.5-turbo": 4_097,
+        "gpt-3.5-turbo-16k": 16_385
+        }
 
 class Conversation:
     """Represents a Converstaion with a particular model. Maintains conversation state"""
@@ -20,17 +27,20 @@ class Conversation:
     ):
         self._messages = messages if messages is not None else []
         self._model = config["model"]
+        self._encoding = tiktoken.encoding_for_model(self._model)
+
         self.id = chat_id
         self.filename = Path(CONVERSATIONS_DIR, str(self.id) + ".json")
+        self.tokens = sum(len(self._encoding.encode(message["content"])) for message in self._messages)
+
+        model_type = self._model
+        self.token_limit = None
+        while self.token_limit is None and len(model_type) > 0:
+            self.token_limit = TOKEN_LIMIT.get(model_type)
+            model_type = model_type[:-1]
 
         openai.api_key = config["apikey"]
     # end __init__
-
-    @staticmethod
-    def models():
-        """Returns the list of models"""
-        return [obj["id"] for obj in openai.Model.list()["data"]]
-    # end models
 
     @staticmethod
     def previous(config: Dict):
@@ -51,6 +61,7 @@ class Conversation:
 
     def add_user_message(self: Self, user_query: str):
         """Adds a new user message to the chat history and continues the conversation"""
+        self.tokens += len(self._encoding.encode(user_query))
         message = { "role": "user", "content": user_query }
         self._messages.append(message)
         self.get_model_response()
@@ -80,12 +91,13 @@ class Conversation:
                 else:
                     message["content"] += delta["content"]
         print()
+        self.tokens += len(self._encoding.encode(message["content"]))
         self._messages.append(message)
     # end get_model_response
 
     def redo(self: Self):
         """Regenerates the previous response"""
-        self._messages.pop()
+        self.tokens -= len(self._encoding.encode(self._messages.pop()["content"]))
         self.get_model_response()
     # end redo
 
