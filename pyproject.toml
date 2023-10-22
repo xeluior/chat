@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chat-cli"
-version = "0.3.2"
+version = "0.3.3"
 description = "Command line interaction with ChatGPT with chat history saved locally"
 authors = ["Robert Gingras"]
 readme = "README.md"
@@ -14,6 +14,7 @@ typing-extensions = "^4.8.0"
 argparse = "^1.4.0"
 pyperclip = "^1.8.2"
 platformdirs = "^3.11.0"
+tiktoken = "^0.5.1"
 
 [tool.poetry.scripts]
 chat = "chat_cli:main"
