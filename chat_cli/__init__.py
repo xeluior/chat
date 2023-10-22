@@ -14,8 +14,9 @@ def run(config: Dict):
     """Runs a chat loop with the given settings, exiting on ^D or .exit"""
     conversation = Conversation.previous(config) if config["resume"] else Conversation(config)
     while True:
+        prompt = config["prompt"].replace('%t', str(conversation.tokens)).replace('%T', str(conversation.token_limit))
         try:
-            user_query = input(config["prompt"])
+            user_query = input(prompt)
             if user_query == ".exit":
                 raise EOFError
             if user_query == ".redo":
@@ -44,7 +45,7 @@ def load_config(args: argparse.Namespace):
     if args.prompt is not None:
         config["prompt"] = args.prompt
     if "prompt" not in config.keys():
-        config["prompt"] = "> "
+        config["prompt"] = "%t/%T > "
     if args.model:
         config["model"] = args.model
     if "model" not in config.keys():

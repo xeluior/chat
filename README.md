@@ -27,7 +27,7 @@ Specify the API key to use when connection to OpenAI
 
 ### `--prompt`
 
-Change the prompt that is displayed for input
+Change the prompt that is displayed for input. The sequences %t and %T can be used to display the current token and max token count for the model, respectively. Default prompt is '%t/%T > '
 
 ### `--save`
 
