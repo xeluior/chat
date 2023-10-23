@@ -65,3 +65,7 @@ Copies the first code block in the previous response to the system clipboard. Pr
 
 Exits the application and saves the chat history. Same as encountering `EOF`. Prints the chat log location.
 
+### `.summarize`
+
+Asks the model to summarize the conversation and starts a new conversation with the summary as the first message. Saves the conversation prior to the summary. Should be called before reaching the token limit to continue a conversation.
+

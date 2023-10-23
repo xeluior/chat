@@ -28,6 +28,7 @@ class Conversation:
         self._messages = messages if messages is not None else []
         self._model = config["model"]
         self._encoding = tiktoken.encoding_for_model(self._model)
+        self._config = config
 
         self.id = chat_id
         self.filename = Path(CONVERSATIONS_DIR, str(self.id) + ".json")
@@ -124,4 +125,11 @@ class Conversation:
         pyperclip.copy(code)
         print(pyperclip.paste())
     # end copy_code
+
+    def summarize(self: Self) -> Self:
+        """Asks the model to summarize the conversation so far. Returns a new conversation with the summary as the first message."""
+        self.add_user_message("Summarize the conversation so far.")
+        summary = self._messages.pop()
+        return Conversation(self._config, [summary])
+    # end summarize
 # end class Conversation

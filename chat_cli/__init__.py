@@ -23,6 +23,9 @@ def run(config: Dict):
                 conversation.redo()
             elif user_query == ".copy":
                 conversation.copy_code()
+            elif user_query == ".summarize":
+                conversation.save_history()
+                conversation = conversation.summarize()
             else:
                 conversation.add_user_message(user_query)
         except EOFError:
