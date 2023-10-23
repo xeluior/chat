@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "chat-cli"
-version = "0.3.4"
+version = "0.3.5"
 description = "Command line interaction with ChatGPT with chat history saved locally"
 authors = ["Robert Gingras"]
 readme = "README.md"
