@@ -29,15 +29,14 @@ class Conversation:
         self._model = config["model"]
         self._encoding = tiktoken.encoding_for_model(self._model)
         self._config = config
+        self.filename = Path(CONVERSATIONS_DIR, str(chat_id) + ".json")
 
-        self.id = chat_id
-        self.filename = Path(CONVERSATIONS_DIR, str(self.id) + ".json")
         self.tokens = sum(len(self._encoding.encode(message["content"])) for message in self._messages)
 
         model_type = self._model
-        self.token_limit = None
-        while self.token_limit is None and len(model_type) > 0:
-            self.token_limit = TOKEN_LIMIT.get(model_type)
+        self.token_limit = 0
+        while self.token_limit == 0 and len(model_type) > 0:
+            self.token_limit = TOKEN_LIMIT.get(model_type, 0)
             model_type = model_type[:-1]
 
         openai.api_key = config["apikey"]
@@ -127,7 +126,10 @@ class Conversation:
     # end copy_code
 
     def summarize(self: Self) -> Self:
-        """Asks the model to summarize the conversation so far. Returns a new conversation with the summary as the first message."""
+        """Asks the model to summarize the conversation so far. Returns a new conversation with the
+        summary as the first message.
+        """
+
         self.add_user_message("Summarize the conversation so far.")
         summary = self._messages.pop()
         return Conversation(self._config, [summary])

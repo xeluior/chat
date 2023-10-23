@@ -10,11 +10,24 @@ try:
 except ModuleNotFoundError:
     pass
 
+TOKEN_THRESHOLD = 0.75
+
+def format_prompt(prompt: str, data: Dict[str, str]) -> str:
+    """Formats C-style format strings by replacing instances of %-prefixed dict keys with the dict value"""
+    for key, value in data:
+        prompt, _ = re.subn(f"(?<!%)%{key}", value, prompt)
+    return prompt.replace('%%', '%')
+# end format_prompt
+
 def run(config: Dict):
     """Runs a chat loop with the given settings, exiting on ^D or .exit"""
     conversation = Conversation.previous(config) if config["resume"] else Conversation(config)
     while True:
-        prompt = config["prompt"].replace('%t', str(conversation.tokens)).replace('%T', str(conversation.token_limit))
+        prompt = format_prompt(config["prompt"],
+                {
+                    "t": str(conversation.tokens),
+                    "T": str(conversation.token_limit)
+                })
         try:
             user_query = input(prompt)
             if user_query == ".exit":
@@ -27,6 +40,10 @@ def run(config: Dict):
                 conversation.save_history()
                 conversation = conversation.summarize()
             else:
+                if conversation.tokens / conversation.token_limit >= TOKEN_THRESHOLD:
+                    conversation.save_history()
+                    conversation = conversation.summarize()
+
                 conversation.add_user_message(user_query)
         except EOFError:
             conversation.save_history()
