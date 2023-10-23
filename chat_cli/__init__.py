@@ -14,7 +14,7 @@ TOKEN_THRESHOLD = 0.75
 
 def format_prompt(prompt: str, data: Dict[str, str]) -> str:
     """Formats C-style format strings by replacing instances of %-prefixed dict keys with the dict value"""
-    for key, value in data:
+    for key, value in data.items():
         prompt, _ = re.subn(f"(?<!%)%{key}", value, prompt)
     return prompt.replace('%%', '%')
 # end format_prompt
